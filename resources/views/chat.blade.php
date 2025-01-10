@@ -145,21 +145,29 @@
 
                                     // append response in body content
                                     if (last_response === false) {
+                                        let userMessage = response
+                                            .replaceAll("\n", "<br>")
+
                                         $("#chat-content").append(
-                                            `<div class="p-3 mx-2 my-3 float-start w-100 chat">${response}</div><br>`
+                                            `<div class="p-3 mx-2 my-3 float-start w-100 chat">${userMessage}</div><br>`
                                         )
                                         $("#chat-content").animate({
-                                            scrollTop: $("#chat-content").height() +
+                                            scrollTop: document.querySelector(
+                                                    '#chat-content').scrollHeight +
                                                 100
                                         }, 100);
                                     } else {
                                         this_response = response.substring(last_response
                                             .length);
+
+                                        let systemMessage = this_response
+                                            .replaceAll("\n", "<br>")
                                         $("#chat-content .chat").last().append(
-                                            this_response);
+                                            systemMessage);
                                     }
+
                                     last_response = response;
-                                    console.log(response);
+                                    // console.log(response);
                                 }
                             }
                         })
@@ -188,13 +196,21 @@
                                         `<div class="rounded-5 p-3 mx-2 my-3 bg-body-tertiary float-end" style="max-width: 70%">${item.message}</div><br>`
                                     )
                                 } else {
+                                    let message = item.message
+                                        .replace(/^### (.*$)/gim, '<h3>$1</h3>') // h3 tag
+                                        .replace(/^## (.*$)/gim, '<h2>$1</h2>') // h2 tag
+                                        .replace(/^# (.*$)/gim, '<h1>$1</h1>') // h1 tag
+                                        .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>') // bold text
+                                        .replace(/\*(.*)\*/gim, '<i>$1</i>')
+                                        .replaceAll("\n", "<br>")
                                     $("#chat-content").append(
-                                        `<div class="p-3 mx-2 my-3 float-start w-100 chat">${item.message}</div><br>`
+                                        `<div class="p-3 mx-2 my-3 float-start w-100 chat">${message}</div><br>`
                                     )
                                 }
                             })
                             $("#chat-content").animate({
-                                scrollTop: $("#chat-content").height() + 100
+                                scrollTop: document.querySelector('#chat-content')
+                                    .scrollHeight + 100
                             }, 1);
                         }
                     })
