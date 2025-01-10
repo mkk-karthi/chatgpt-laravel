@@ -16,3 +16,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/chat_groups', [ChatGroupController::class, "list"]);
+Route::post('/chat_group/create', [ChatGroupController::class, "create"]);
+Route::post('/chat_group/update/{id}', [ChatGroupController::class, "update"]);
+Route::get('/chat_group/delete/{id}', [ChatGroupController::class, "delete"]);
+

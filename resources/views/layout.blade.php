@@ -17,6 +17,7 @@
 
     {{-- jquery --}}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
     <style>
         @media (min-width: 576px) {
             .offcanvas {
@@ -30,18 +31,25 @@
             }
         }
 
-        @media (min-width: 1200px)  {
+        @media (min-width: 1200px) {
             .offcanvas {
                 --bs-offcanvas-width: 20%;
             }
         }
 
-        .fixed-bottom{
+        .fixed-bottom {
             z-index: 1000 !important;
         }
 
-        .chat-list{
+        .chat-group {
             cursor: pointer;
+        }
+
+        .chat-group-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 75%;
         }
 
         textarea {
@@ -56,6 +64,9 @@
 </head>
 
 <body>
+    <div id="notify-messages" class="position-fixed" style="z-index: 1000; top:66px; right: 20px;">
+    </div>
+
     @yield('content')
 </body>
 

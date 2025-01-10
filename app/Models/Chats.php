@@ -10,7 +10,7 @@ class Chats extends Model
     use HasFactory;
 
     protected $primaryKey = "id";
-    private $table = "chats";
+    protected $table = "chats";
     public $timestamps = true;
 
     protected $fillable = ["role", "message", "chat_group_id"];

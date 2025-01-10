@@ -10,7 +10,7 @@ class ChatGroup extends Model
     use HasFactory;
 
     protected $primaryKey = "id";
-    private $table = "chat_groups";
+    protected $table = "chat_groups";
     public $timestamps = true;
 
     protected $fillable = ["name"];
