@@ -39,16 +39,30 @@ class ChatsController extends Controller
             } else {
 
                 $chat_message = $input["message"];
+                $chat_group_id = $input["group_id"];
 
-                // get last openai response
-                $last_chat = Chats::where([["role", "assistant"]])->orderBy("id", "desc")->first();
+                // // get last openai response
+                // $last_chat = Chats::where([["role", "assistant"], ["chat_group_id", $chat_group_id]])->orderBy("id", "desc")->first();
+
+                // $messages = [];
+                // if (!is_null($last_chat)) {
+                //     $messages[] = [
+                //         "role" => "assistant",
+                //         "content" => $last_chat->message
+                //     ];
+                // }
+
+                // get previous chats
+                $last_chats = Chats::where([["chat_group_id", $chat_group_id]])->get();
 
                 $messages = [];
-                if (!is_null($last_chat)) {
-                    $messages[] = [
-                        "role" => "assistant",
-                        "content" => $last_chat->message
-                    ];
+                if (count($last_chats) > 0) {
+                    foreach ($last_chats as $row) {
+                        $messages[] = [
+                            "role" => $row->role,
+                            "content" => $row->message
+                        ];
+                    }
                 }
                 $messages[] = [
                     "role" => "user",
@@ -56,9 +70,8 @@ class ChatsController extends Controller
                 ];
 
                 // return stream response
-                return response()->stream(function () use ($input, $messages, $chat_message) {
+                return response()->stream(function () use ($messages, $chat_message, $chat_group_id) {
                     $content = "";
-                    $chat_group_id = $input["group_id"];
 
                     // get openai chat content with stream
                     $stream = OpenAI::chat()->createStreamed([
@@ -81,14 +94,14 @@ class ChatsController extends Controller
                     }
 
                     // add user message in table
-                    $chat = Chats::create([
+                    $user_chat = Chats::create([
                         "role" => "user",
                         "message" => $chat_message,
                         "chat_group_id" => $chat_group_id,
                     ]);
 
                     // add openai response in table 
-                    $chat1 = Chats::create([
+                    $assistant_chat = Chats::create([
                         "role" => "assistant",
                         "message" => $content,
                         "chat_group_id" => $chat_group_id,
