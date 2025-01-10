@@ -21,3 +21,5 @@ Route::post('/chat_group/create', [ChatGroupController::class, "create"]);
 Route::post('/chat_group/update/{id}', [ChatGroupController::class, "update"]);
 Route::get('/chat_group/delete/{id}', [ChatGroupController::class, "delete"]);
 
+Route::get('/chats/{id}', [ChatsController::class, "list"]);
+Route::post('/stream_chat', [ChatsController::class, "stream_chat"]);
