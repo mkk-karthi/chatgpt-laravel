@@ -4,7 +4,7 @@
     <div class="overflow-visible">
         <nav class="navbar bg-body-tertiary shadow fixed-top">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">ChatGPT</a>
+                <a class="navbar-brand" href="#">{{ env('APP_NAME') }}</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
                     aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -12,7 +12,7 @@
                 <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasNavbar"
                     aria-labelledby="sideNavbar">
                     <div class="offcanvas-header">
-                        <h5 class="offcanvas-title" id="sideNavbar">ChatGPT</h5>
+                        <h5 class="offcanvas-title" id="sideNavbar">{{ env('APP_NAME') }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                     </div>
                     <div class="offcanvas-body">
@@ -33,7 +33,7 @@
             <form>
                 <div class="d-flex justify-content-between align-items-center">
                     <textarea type="text" class="form-control bg-body-tertiary" id="send-message" style="resize:none"
-                        placeholder="Message ChatGPT"></textarea>
+                        placeholder="Message {{ env('APP_NAME') }}"></textarea>
                     <button type="button" class="btn btn-outline-secondary mx-2" id="send"><i
                             class="bi bi-send-fill"></i></button>
                 </div>

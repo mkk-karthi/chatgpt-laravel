@@ -3,9 +3,9 @@ Streaming OpenAI Responses in Laravel with Server-Sent Events (SSE)
 
 ## Images
 <p align="center">
-<img src="https://raw.githubusercontent.com/mkk-karthi/chatgpt-laravel/master/public/screenshots/ChatGpt%20Page-1.png" width="400" alt="ChatGPT using laravel">
-<img src="https://raw.githubusercontent.com/mkk-karthi/chatgpt-laravel/master/public/screenshots/ChatGpt%20Page-2.png" width="400" alt="ChatGPT using laravel">
-<img src="https://raw.githubusercontent.com/mkk-karthi/chatgpt-laravel/master/public/screenshots/ChatGpt%20Page-3.png" width="400" alt="ChatGPT using laravel">
+<img src="https://raw.githubusercontent.com/mkk-karthi/chatgpt-laravel/master/public/screenshots/ChatGpt%20Page-1.png" alt="ChatGPT using laravel"><br>
+<img src="https://raw.githubusercontent.com/mkk-karthi/chatgpt-laravel/master/public/screenshots/ChatGpt%20Page-2.png" alt="ChatGPT using laravel"><br>
+<img src="https://raw.githubusercontent.com/mkk-karthi/chatgpt-laravel/master/public/screenshots/ChatGpt%20Page-3.png" alt="ChatGPT using laravel"><br>
 </p>
 
 ### Pre-required
