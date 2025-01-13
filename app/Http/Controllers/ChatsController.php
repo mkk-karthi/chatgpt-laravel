@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Chats;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Exceptions\StreamedResponseException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use OpenAI\Exceptions\ErrorException;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class ChatsController extends Controller
@@ -31,7 +33,8 @@ class ChatsController extends Controller
 
             // validate input
             $validator = Validator::make($input, [
-                "message" => "required|max:120"
+                "message" => "required|max:120",
+                "group_id" => "required"
             ]);
 
             if ($validator->fails()) {
@@ -41,26 +44,17 @@ class ChatsController extends Controller
                 $chat_message = $input["message"];
                 $chat_group_id = $input["group_id"];
 
-                // // get last openai response
-                // $last_chat = Chats::where([["role", "assistant"], ["chat_group_id", $chat_group_id]])->orderBy("id", "desc")->first();
-
-                // $messages = [];
-                // if (!is_null($last_chat)) {
-                //     $messages[] = [
-                //         "role" => "assistant",
-                //         "content" => $last_chat->message
-                //     ];
-                // }
-
-                // get previous chats
-                $last_chats = Chats::where([["chat_group_id", $chat_group_id]])->get();
+                // get last chats to look like the last chat
+                $limit = 6;
+                $last_chats = Chats::where([["chat_group_id", $chat_group_id]])->orderBy("id", "desc")->limit($limit)->get()->toArray();;
 
                 $messages = [];
                 if (count($last_chats) > 0) {
+                    $last_chats = array_reverse($last_chats);
                     foreach ($last_chats as $row) {
                         $messages[] = [
-                            "role" => $row->role,
-                            "content" => $row->message
+                            "role" => $row["role"],
+                            "content" => $row["message"]
                         ];
                     }
                 }
@@ -73,39 +67,50 @@ class ChatsController extends Controller
                 return response()->stream(function () use ($messages, $chat_message, $chat_group_id) {
                     $content = "";
 
-                    // get openai chat content with stream
-                    $stream = OpenAI::chat()->createStreamed([
-                        "model" => "gpt-4o-mini",
-                        "messages" => $messages,
-                        "stream" => true
-                    ]);
+                    try {
+                        // get openai chat content with stream
+                        $stream = OpenAI::chat()->createStreamed([
+                            "model" => "gpt-4o-mini",
+                            "messages" => $messages,
+                            "stream" => true
+                        ]);
 
-                    foreach ($stream as $response) {
-                        $text = $response->choices[0]->delta->content;
-                        $content .= $text;
+                        foreach ($stream as $response) {
+                            $text = $response->choices[0]->delta->content;
+                            $content .= $text;
 
-                        if (connection_aborted()) {
-                            break;
+                            if (connection_aborted()) {
+                                break;
+                            }
+
+                            echo $text;
+                            ob_flush();
+                            flush();
                         }
 
-                        echo $text;
-                        ob_flush();
-                        flush();
+                        // add user message in table
+                        $user_chat = Chats::create([
+                            "role" => "user",
+                            "message" => $chat_message,
+                            "chat_group_id" => $chat_group_id,
+                        ]);
+
+                        // add openai response in table 
+                        $assistant_chat = Chats::create([
+                            "role" => "assistant",
+                            "message" => $content,
+                            "chat_group_id" => $chat_group_id,
+                        ]);
+                    } catch (Exception $ex) {
+
+                        Log::channel('single')->error($ex->getMessage());
+                        $message = "#Error: Something went wrong#";
+                        echo $message;
+                    } catch (ErrorException $ex) {
+
+                        Log::channel('single')->error($ex->getMessage());
+                        $message = "#Error: Something went wrong#";
                     }
-
-                    // add user message in table
-                    $user_chat = Chats::create([
-                        "role" => "user",
-                        "message" => $chat_message,
-                        "chat_group_id" => $chat_group_id,
-                    ]);
-
-                    // add openai response in table 
-                    $assistant_chat = Chats::create([
-                        "role" => "assistant",
-                        "message" => $content,
-                        "chat_group_id" => $chat_group_id,
-                    ]);
                 }, 200, [
                     'X-Accel-Buffering' => 'no',
                     'Content-Type' => 'text/event-stream',
@@ -116,8 +121,12 @@ class ChatsController extends Controller
 
             Log::channel('single')->error($ex->getMessage());
             $message = "Something went wrong";
+        } catch (StreamedResponseException $ex) {
+
+            Log::channel('single')->error("13:" . $ex->getMessage());
+            $message = "Something went wrong";
         }
 
-        return response()->json(["code" => $code, "message" => $message]);
+        return response()->json(["code" => $code, "message" => $message], 400);
     }
 }

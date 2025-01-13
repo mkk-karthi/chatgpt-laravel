@@ -28,33 +28,6 @@
             </div>
         </nav>
         <main class="container-fluid overflow-y-scroll overflow-x-hidden" id="chat-content">
-            {{-- <div class="rounded-5 p-3 mx-2 my-3 bg-body-tertiary float-end" style="max-width: 70%">To control</div>
-            <div class="p-3 mx-2 my-3 float-start w-100">To control the border and outline, the CSS property is used. To
-                remove the
-                focus border (outline) from text/input boxes, the outline and border property is used. Remove Focus
-                Border/Outline Around TextArea The CSS property outline: none; and border:none; within the :focus
-                selector to remove the outline of input textarea. This prevents the default outline from appearing when
-                the text box is clicked or focused.</div>
-            <div class="rounded-5 p-3 mx-2 my-3 bg-body-tertiary float-end" style="max-width: 70%">T111</div>
-            <div class="p-3 mx-2 my-3 float-start w-100">To control the border and outline, the CSS property is used. To
-                remove the
-                focus border (outline) from text/input boxes, the outline and border property is used. Remove Focus
-                Border/Outline Around TextArea The CSS property outline: none; and border:none; within the :focus
-                selector to remove the outline of input textarea. This prevents the default outline from appearing when
-                the text box is clicked or focused.</div>
-            <div class="rounded-5 p-3 mx-2 my-3 bg-body-tertiary float-end" style="max-width: 70%">To control the border
-                and
-                outline, the CSS property is used. To remove the focus border (outline) from text/input boxes, the
-                outline and border property is used. Remove Focus Border/Outline Around TextArea The CSS property
-                outline: none; and border:none; within the :focus selector to remove the outline of input textarea. This
-                prevents the default outline from appearing when the text box is clicked or focused.</div>
-            <div class="p-3 mx-2 my-3 float-start w-100">To control the border and outline, the CSS property is used. To
-                remove the
-                focus border (outline) from text/input boxes, the outline and border property is used. Remove Focus
-                Border/Outline Around TextArea The CSS property outline: none; and border:none; within the :focus
-                selector to remove the outline of input textarea. This prevents the default outline from appearing when
-                the text box is clicked or focused.</div> --}}
-
         </main>
         <div class="m-2 fixed-bottom rounded-5 bg-body-tertiary p-2">
             <form>
@@ -87,6 +60,18 @@
                     $(".chat-group .bg-body-tertiary").removeClass("bg-body-tertiary")
             })
 
+            // Notification
+            const Notification = (msg, type = "danger") => {
+                const msgContent =
+                    `<div class="alert alert-${type}" role="alert">${msg}</div>`;
+                $("#notify-messages").append(msgContent)
+
+                setTimeout(() => {
+                    $("#notify-messages").html($("#notify-messages").html()
+                        .replace(msgContent, ""))
+                }, 5000);
+            }
+
             // send and get message
             $("#send").on("click", (ele) => {
                 ele.stopPropagation();
@@ -97,21 +82,13 @@
 
                 // check message length
                 if (message.length > 120) {
-                    const msgContent =
-                        `<div class="alert alert-danger" role="alert">Must be less than 120 characters.</div>`;
-                    $("#notify-messages").append(msgContent)
-
+                    Notification("Must be less than 120 characters.");
                     $("#send").attr("disabled", false)
-
-                    setTimeout(() => {
-                        $("#notify-messages").html($("#notify-messages").html()
-                            .replace(msgContent, ""))
-                    }, 5000);
                 } else {
 
                     // append user message in body content
                     $("#chat-content").append(
-                        `<div class="rounded-5 p-3 mx-2 my-3 bg-body-tertiary float-end" style="max-width: 70%">${message}</div><br>`
+                        `<div class="rounded-5 p-3 mx-2 my-3 bg-body-tertiary float-end user-message" style="max-width: 70%">${message}</div><br>`
                     )
 
                     // check and create chat group
@@ -132,6 +109,7 @@
                 // stream chat api
                 function chatGeneration() {
                     var last_response = false;
+                    $("#send-message").val("");
                     $.ajax(`${location.origin}/api/stream_chat`, {
                             type: "POST",
                             data: {
@@ -143,41 +121,55 @@
                                 onprogress: function(e) {
                                     var this_response, response = e.currentTarget.response;
 
-                                    // append response in body content
-                                    if (last_response === false) {
-                                        let userMessage = response
-                                            .replaceAll("\n", "<br>")
+                                    // check server error
+                                    if (response.indexOf("#Error: Something went wrong#") >= 0) {
+                                        Notification("Something went wrong.");
+                                        $("#send").attr("disabled", false)
+                                        $("#send-message").val(message);
 
-                                        $("#chat-content").append(
-                                            `<div class="p-3 mx-2 my-3 float-start w-100 chat">${userMessage}</div><br>`
-                                        )
-                                        $("#chat-content").animate({
-                                            scrollTop: document.querySelector(
-                                                    '#chat-content').scrollHeight +
-                                                100
-                                        }, 100);
+                                        // Remove error chat
+                                        // $("#chat-content .user-message").last().remove();
+                                        // if (last_response !== false) {
+                                        //     $("#chat-content .user-message").last().remove();
+                                        // }
                                     } else {
-                                        this_response = response.substring(last_response
-                                            .length);
 
-                                        let systemMessage = this_response
-                                            .replaceAll("\n", "<br>")
-                                        $("#chat-content .chat").last().append(
-                                            systemMessage);
+                                        // append response in body content
+                                        if (last_response === false) {
+                                            let userMessage = response
+                                                .replaceAll("\n", "<br>")
+
+                                            $("#chat-content").append(
+                                                `<div class="p-3 mx-2 my-3 float-start w-100 reply-message">${userMessage}</div><br>`
+                                            )
+                                            $("#chat-content").animate({
+                                                scrollTop: document.querySelector(
+                                                        '#chat-content').scrollHeight +
+                                                    100
+                                            }, 100);
+                                        } else {
+                                            this_response = response.substring(last_response
+                                                .length);
+
+                                            let systemMessage = this_response
+                                                .replaceAll("\n", "<br>")
+                                            $("#chat-content .reply-message").last().append(
+                                                systemMessage);
+                                        }
+
+                                        last_response = response;
+                                        // console.log(response);
                                     }
-
-                                    last_response = response;
-                                    // console.log(response);
                                 }
                             }
                         })
                         .done(function(data) {
                             $("#send").attr("disabled", false)
-                            $("#send-message").val("");
                         })
                         .fail(function(data) {
                             console.log('Error: ', data);
                             $("#send").attr("disabled", false)
+                            $("#send-message").val(message);
                         });
                 }
             })
@@ -193,7 +185,7 @@
                             res.data.forEach(item => {
                                 if (item.role == "user") {
                                     $("#chat-content").append(
-                                        `<div class="rounded-5 p-3 mx-2 my-3 bg-body-tertiary float-end" style="max-width: 70%">${item.message}</div><br>`
+                                        `<div class="rounded-5 p-3 mx-2 my-3 bg-body-tertiary float-end user-message" style="max-width: 70%">${item.message}</div><br>`
                                     )
                                 } else {
                                     let message = item.message
@@ -204,7 +196,7 @@
                                         .replace(/\*(.*)\*/gim, '<i>$1</i>')
                                         .replaceAll("\n", "<br>")
                                     $("#chat-content").append(
-                                        `<div class="p-3 mx-2 my-3 float-start w-100 chat">${message}</div><br>`
+                                        `<div class="p-3 mx-2 my-3 float-start w-100 reply-message">${message}</div><br>`
                                     )
                                 }
                             })
@@ -278,18 +270,9 @@
 
                                     // check name length
                                     if (name.length > 120) {
-                                        const msgContent =
-                                            `<div class="alert alert-danger" role="alert">Must be less than 120 characters.</div>`;
-                                        $("#notify-messages").append(msgContent)
+                                        Notification(
+                                            "Must be less than 120 characters.");
                                         $(".btn-close").click();
-
-                                        setTimeout(() => {
-                                            $("#notify-messages").html($(
-                                                    "#notify-messages")
-                                                .html()
-                                                .replace(msgContent, "")
-                                            )
-                                        }, 5000);
                                     } else {
                                         $.post(`${location.origin}/api/chat_group/update/${id}`, {
                                             name
